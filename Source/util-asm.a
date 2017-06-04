@@ -1,0 +1,36 @@
+; util-asm.a - Miscellaneous routines in assembly.
+; Copyright (C) 1997,1998 Karl J. Ots
+; 
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; (at your option) any later version.
+; 
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+; This should only be assembled with DAS using registered args.
+; You may change it to work with another assembler, or include some
+; stacked args stubs if you like.  I really don't care.
+
+
+	section	text,code
+
+	xdef	@LEL
+	xdef	@LES
+
+@LEL:	; D0 = (ULONG) num
+	rol.w	#8,d0
+	swap	d0
+@LES:	; D0 = (UWORD) num
+	rol.w	#8,d0
+	rts
+
+	END

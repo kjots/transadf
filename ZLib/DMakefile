@@ -1,0 +1,89 @@
+# This can be used to create "zsr.lib", which is required to
+# compile TransADF.  Simply copy this DMakeFile into the directory
+# where the ZLib sources have been installed and type 'dmake'.
+
+CC     = dcc
+
+SFLAGS = -ms -r -pr
+RFLAGS = -mRR -mi
+PFLAGS = -prof -mi0
+
+CFLAGS = -proto $(SFLAGS) $(RFLAGS)
+DFLAGS = -v -s
+
+
+LIB    = zsr.lib
+
+DINC   = dinclude:pd/
+DLIB   = dlib:
+
+
+OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
+       zutil.o inflate.o infblock.o inftrees.o infcodes.o infutil.o inffast.o
+
+
+$(LIB): $(OBJS)
+	Join $(OBJS) AS %(left)
+
+example: example.o $(LIB)
+	$(CC) $(DFLAGS) $(CFLAGS) -lz -o %(left) example.o $(LIB)
+
+minigzip: minigzip.o $(LIB)
+	$(CC) $(DFLAGS) $(CFLAGS) -lz -o %(left) minigzip.o $(LIB)
+
+install: $(LIB)
+	copy zlib.h zconf.h $(DINC) CLONE
+	copy $(LIB) $(DLIB) CLONE
+
+clean:
+	-delete $(OBJS) example minigzip $(LIB) foo.gz FORCE QUIET
+
+
+## Objects
+adler32.o: zutil.h zlib.h zconf.h adler32.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) adler32.c
+
+compress.o: zlib.h zconf.h compress.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) compress.c
+
+crc32.o: zutil.h zlib.h zconf.h crc32.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) crc32.c
+
+deflate.o: deflate.h zutil.h zlib.h zconf.h deflate.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) deflate.c
+
+example.o: zlib.h zconf.h example.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) example.c
+
+gzio.o: zutil.h zlib.h zconf.h gzio.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) gzio.c
+
+infblock.o: zutil.h zlib.h zconf.h infblock.h inftrees.h infcodes.h infutil.h infblock.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) infblock.c
+
+infcodes.o: zutil.h zlib.h zconf.h inftrees.h infutil.h infcodes.h inffast.h infcodes.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) infcodes.c
+
+inffast.o: zutil.h zlib.h zconf.h inftrees.h infutil.h inffast.h inffast.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) inffast.c
+
+inflate.o: zutil.h zlib.h zconf.h infblock.h inflate.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) inflate.c
+
+inftrees.o: zutil.h zlib.h zconf.h inftrees.h inftrees.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) inftrees.c
+
+infutil.o: zutil.h zlib.h zconf.h inftrees.h infutil.h infutil.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) infutil.c
+
+minigzip.o: zlib.h zconf.h minigzip.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) minigzip.c
+
+trees.o: deflate.h zutil.h zlib.h zconf.h trees.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) trees.c
+
+uncompr.o: zlib.h zconf.h uncompr.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) uncompr.c
+
+zutil.o: zutil.h zlib.h zconf.h zutil.c
+	$(CC) $(DFLAGS) $(CFLAGS) -c -o %(left) zutil.c

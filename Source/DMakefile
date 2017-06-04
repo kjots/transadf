@@ -1,0 +1,127 @@
+CC     = dcc
+COPTS  = -proto -mi -mRR -ms -r
+DOPTS  = 
+
+# Note: The DICE regargs amiga library (amigasr.lib) does not have a 
+# _FPrintf stub (Can't imagine why...).  Link this object if you are
+# using DICE.
+XOBJS  = dos_fprintf.o
+
+OUTPUT   = /TransADF
+RTOUTPUT = /TransADF-RT
+LOUTPUT  = /TransADF-Lite
+
+OBJS   = main.o args.o mem_chunks.o device.o read_disk.o write_disk.o defl_disk.o \
+infl_disk.o util.o util-asm.o gzip.o pkzip.o errors.o version.o $(XOBJS)
+
+RTOBJS = main_r.o args.o mem_chunks.o device.o read_disk.o write_disk.o defl_disk_r.o \
+infl_disk_r.o util.o util-asm.o gzip.o pkzip.o errors.o version_r.o $(XOBJS)
+
+LOBJS = main_l.o args.o mem_chunks.o device.o read_disk.o write_disk.o util_l.o \
+errors.o version_l.o $(XOBJS)
+
+
+#####
+all: $(OUTPUT) $(RTOUTPUT) $(LOUTPUT)
+	chmod 700 $(OUTPUT) $(RTOUTPUT) $(LOUTPUT)
+
+###############
+# Executables #
+###############
+$(OUTPUT): $(OBJS)
+	$(CC) $(DOPTS) $(COPTS) -lz -o %(left) $(OBJS)
+
+$(RTOUTPUT): $(RTOBJS)
+	$(CC) $(DOPTS) $(COPTS) -o %(left) $(RTOBJS)
+
+$(LOUTPUT): $(LOBJS)
+	$(CC) $(DOPTS) $(COPTS) -o %(left) $(LOBJS)
+
+
+####################
+# Standard objects #
+####################
+main.o: mem_chunks.h device.h read_disk.h write_disk.h defl_disk.h infl_disk.h util.h errors.h version.h main.h main.c 
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) main.c
+
+args.o: args.h args.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) args.c
+
+mem_chunks.o: mem_chunks.h mem_chunks.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) mem_chunks.c
+
+device.o: main.h util.h errors.h device.h device.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) device.c
+
+read_disk.o: main.h mem_chunks.h device.h util.h errors.h read_disk.h read_disk.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) read_disk.c
+
+write_disk.o: main.h mem_chunks.h device.h util.h errors.h write_disk.h write_disk.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) write_disk.c
+
+defl_disk.o: main.h mem_chunks.h device.h util.h errors.h def_disk.h defl_disk.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) defl_disk.c
+
+infl_disk.o: main.h mem_chunks.h device.h util.h errors.h infl_disk.h infl_disk.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) infl_disk.c
+	
+util.o: gzip.h pkzip.h util.h util.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) util.c
+
+util-asm.o: util.h util-asm.a
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) util-asm.a
+
+gzip.o: main.h util.h errors.h gzip.h gzip.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) gzip.c
+
+pkzip.o: main.h util.h errors.h pkzip.h pkzip.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) pkzip.c
+
+errors.o: main.h errors.h errors.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) errors.c
+
+version.o: main.h version.h version.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) version.c
+
+
+#############################
+# RunTime z.library objects #
+#############################
+main_r.o: mem_chunks.h device.h read_disk.h write_disk.h defl_disk.h infl_disk.h util.h errors.h version.h main.h main.c
+	$(CC) $(DOPTS) $(COPTS) -D COMPILE_RT -c -o %(left) main.c
+
+defl_disk_r.o: main.h mem_chunks.h device.h util.h errors.h def_disk.h defl_disk.c
+	$(CC) $(DOPTS) $(COPTS) -D COMPILE_RT -c -o %(left) defl_disk.c
+
+infl_disk_r.o: main.h mem_chunks.h device.h util.h errors.h infl_disk.h infl_disk.c
+	$(CC) $(DOPTS) $(COPTS) -D COMPILE_RT -c -o %(left) infl_disk.c
+
+version_r.o: main.h version.h version.c
+	$(CC) $(DOPTS) $(COPTS) -D COMPILE_RT -c -o %(left) version.c
+
+
+####################################
+# Lite objects - no de/compression #
+####################################
+
+main_l.o: memchunks.h device.h read_disk.h write_disk.h util.h errors.h version.h main.h main.c 
+	$(CC) $(DOPTS) $(COPTS) -D COMPILE_LITE -c -o %(left) main.c
+
+util_l.o: util.h util.c
+	$(CC) $(DOPTS) $(COPTS) -D COMPILE_LITE -c -o %(left) util.c
+
+version_l.o: main.h version.h version.c
+	$(CC) $(DOPTS) $(COPTS) -D COMPILE_LITE -c -o %(left) version.c
+
+
+#################
+# Extra objects #
+#################
+
+dos_fprintf.o: dos_fprintf.c
+	$(CC) $(DOPTS) $(COPTS) -c -o %(left) dos_fprintf.c
+
+
+#############
+clean:
+	delete $(OBJS) $(RTOBJS) $(LOBJS) FORCE QUIET
